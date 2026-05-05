@@ -5,6 +5,7 @@ frontend/dist/
 # Java/Maven
 backend/target/
 backend/*.jar
+backend/.env
 
 # IDEs
 .idea/
