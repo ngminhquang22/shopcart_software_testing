@@ -63,6 +63,41 @@ public class CartServiceImpl implements ICartService {
     }
 
     @Override
+    public CartItemResponse updateQuantity(CartItemRequest request, String userId) {
+        Product product = productRepository.findById(request.getProductId())
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("Product not found with id: " + request.getProductId()));
+
+        Inventory inventory = inventoryRepository.findByProductProductId(product.getProductId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Inventory not found for product id: " + product.getProductId()));
+
+        if (request.getQuantity() > inventory.getQuantity()) {
+            throw new OutOfStockException("Requested quantity exceeds available stock");
+        }
+
+        userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
+        CartItem cartItem = cartItemRepository.findByUserUserIdAndProductProductId(userId, product.getProductId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Cart item not found for user id: " + userId + " and product id: " + product.getProductId()));
+
+        cartItem.setQuantity(request.getQuantity());
+        CartItem savedCartItem = cartItemRepository.save(cartItem);
+        return cartItemMapper.toResponse(savedCartItem);
+    }
+
+    @Override
+    public void removeFromCart(String userId, String productId) {
+        CartItem cartItem = cartItemRepository.findByUserUserIdAndProductProductId(userId, productId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Cart item not found for user id: " + userId + " and product id: " + productId));
+
+        cartItemRepository.delete(cartItem);
+    }
+
+    @Override
     public List<CartItemResponse> getCartItemsByUserId(String userId) {
         return cartItemRepository.findByUserUserId(userId)
                 .stream()

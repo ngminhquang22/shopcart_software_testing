@@ -78,6 +78,24 @@ public class OrderServiceImpl implements IOrderService {
     }
 
     @Override
+    public OrderResponse updateOrderStatus(String orderId, String status) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
+
+        order.setStatus(status);
+        Order savedOrder = orderRepository.save(order);
+        return orderMapper.toResponse(savedOrder);
+    }
+
+    @Override
+    public void cancelOrder(String orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
+
+        orderRepository.delete(order);
+    }
+
+    @Override
     public List<OrderResponse> getOrdersByUserId(String userId) {
         return orderRepository.findByUserUserId(userId)
                 .stream()
