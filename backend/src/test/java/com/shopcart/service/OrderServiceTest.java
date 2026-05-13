@@ -583,4 +583,111 @@ class OrderServiceTest {
                 verify(orderItemRepository, never()).saveAll(anyList());
                 verify(inventoryRepository, never()).save(any(Inventory.class));
         }
+
+        @Test
+        void testCreateOrder_BlankCouponCode_ShouldSkipCouponLookup() {
+                OrderRequest requestWithBlankCoupon = new OrderRequest(
+                                user.getUserId(),
+                                List.of(laptopItemRequest),
+                                "   ",
+                                10_000L,
+                                "123 Test Street",
+                                "COD");
+
+                when(userRepository.findById(user.getUserId())).thenReturn(Optional.of(user));
+                when(productRepository.findById(laptop.getProductId())).thenReturn(Optional.of(laptop));
+                when(inventoryRepository.findByProductProductId(laptop.getProductId()))
+                                .thenReturn(Optional.of(laptopInventory));
+                when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> invocation.getArgument(0));
+                when(orderItemRepository.saveAll(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
+                when(orderMapper.toResponse(any(Order.class))).thenAnswer(invocation -> {
+                        Order order = invocation.getArgument(0);
+                        return OrderResponse.builder()
+                                        .orderId(order.getOrderId())
+                                        .subtotalPrice(order.getSubtotalPrice())
+                                        .shippingFee(order.getShippingFee())
+                                        .totalPrice(order.getTotalPrice())
+                                        .build();
+                });
+
+                OrderResponse response = orderService.createOrder(requestWithBlankCoupon, user.getUserId());
+
+                assertEquals(30_000_000L, response.getSubtotalPrice());
+                assertEquals(10_000L, response.getShippingFee());
+                assertEquals(30_010_000L, response.getTotalPrice());
+                verify(couponRepository, never()).findByCouponCode(any());
+        }
+
+        @Test
+        void testCreateOrder_CouponWithoutExpiry_ShouldBeAccepted() {
+                coupon.setValidUntil(null);
+
+                OrderRequest oneItemWithCoupon = new OrderRequest(
+                                user.getUserId(),
+                                List.of(laptopItemRequest),
+                                "SAVE10",
+                                10_000L,
+                                "123 Test Street",
+                                "COD");
+
+                when(userRepository.findById(user.getUserId())).thenReturn(Optional.of(user));
+                when(couponRepository.findByCouponCode("SAVE10")).thenReturn(Optional.of(coupon));
+                when(productRepository.findById(laptop.getProductId())).thenReturn(Optional.of(laptop));
+                when(inventoryRepository.findByProductProductId(laptop.getProductId()))
+                                .thenReturn(Optional.of(laptopInventory));
+                when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> invocation.getArgument(0));
+                when(orderItemRepository.saveAll(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
+                when(orderMapper.toResponse(any(Order.class))).thenAnswer(invocation -> {
+                        Order order = invocation.getArgument(0);
+                        return OrderResponse.builder()
+                                        .orderId(order.getOrderId())
+                                        .subtotalPrice(order.getSubtotalPrice())
+                                        .shippingFee(order.getShippingFee())
+                                        .totalPrice(order.getTotalPrice())
+                                        .build();
+                });
+
+                OrderResponse response = orderService.createOrder(oneItemWithCoupon, user.getUserId());
+
+                assertEquals(30_000_000L, response.getSubtotalPrice());
+                assertEquals(10_000L, response.getShippingFee());
+                assertEquals(27_010_000L, response.getTotalPrice());
+        }
+
+        @Test
+        void testCreateOrder_DiscountGreaterThanSubtotal_ShouldFloorAtZeroBeforeShipping() {
+                coupon.setDiscountType("FIXED_AMOUNT");
+                coupon.setDiscountValue(2_000_000L);
+
+                OrderRequest smallOrderRequest = new OrderRequest(
+                                user.getUserId(),
+                                List.of(new CartItemRequest(user.getUserId(), mouse.getProductId(), 1)),
+                                "SAVE10",
+                                50_000L,
+                                "123 Test Street",
+                                "COD");
+
+                when(userRepository.findById(user.getUserId())).thenReturn(Optional.of(user));
+                when(couponRepository.findByCouponCode("SAVE10")).thenReturn(Optional.of(coupon));
+                when(productRepository.findById(mouse.getProductId())).thenReturn(Optional.of(mouse));
+                when(inventoryRepository.findByProductProductId(mouse.getProductId()))
+                                .thenReturn(Optional.of(mouseInventory));
+                when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> invocation.getArgument(0));
+                when(orderItemRepository.saveAll(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
+                when(orderMapper.toResponse(any(Order.class))).thenAnswer(invocation -> {
+                        Order order = invocation.getArgument(0);
+                        return OrderResponse.builder()
+                                        .orderId(order.getOrderId())
+                                        .subtotalPrice(order.getSubtotalPrice())
+                                        .shippingFee(order.getShippingFee())
+                                        .totalPrice(order.getTotalPrice())
+                                        .build();
+                });
+
+                OrderResponse response = orderService.createOrder(smallOrderRequest, user.getUserId());
+
+                assertEquals(500_000L, response.getSubtotalPrice());
+                assertEquals(50_000L, response.getShippingFee());
+                assertEquals(50_000L, response.getTotalPrice());
+        }
 }

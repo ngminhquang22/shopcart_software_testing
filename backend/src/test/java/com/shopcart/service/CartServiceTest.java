@@ -35,276 +35,335 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class CartServiceTest {
 
-    @Mock
-    private CartItemRepository cartItemRepository;
+        @Mock
+        private CartItemRepository cartItemRepository;
 
-    @Mock
-    private ProductRepository productRepository;
+        @Mock
+        private ProductRepository productRepository;
 
-    @Mock
-    private InventoryRepository inventoryRepository;
+        @Mock
+        private InventoryRepository inventoryRepository;
 
-    @Mock
-    private UserRepository userRepository;
+        @Mock
+        private UserRepository userRepository;
 
-    @Mock
-    private CartItemMapper cartItemMapper;
+        @Mock
+        private CartItemMapper cartItemMapper;
 
-    @InjectMocks
-    private CartServiceImpl cartService;
+        @InjectMocks
+        private CartServiceImpl cartService;
 
-    private Product product;
-    private Inventory inventory;
-    private User user;
-    private CartItemRequest request;
-    private CartItem existingCartItem;
-    private CartItemResponse cartItemResponse;
+        private Product product;
+        private Inventory inventory;
+        private User user;
+        private CartItemRequest request;
+        private CartItem existingCartItem;
+        private CartItemResponse cartItemResponse;
 
-    @BeforeEach
-    void setUp() {
-        product = Product.builder()
-                .productId("product-1")
-                .name("Laptop")
-                .price(25_000_000L)
-                .status("ACTIVE")
-                .build();
+        @BeforeEach
+        void setUp() {
+                product = Product.builder()
+                                .productId("product-1")
+                                .name("Laptop")
+                                .price(25_000_000L)
+                                .status("ACTIVE")
+                                .build();
 
-        inventory = Inventory.builder()
-                .inventoryId("inventory-1")
-                .product(product)
-                .quantity(10)
-                .build();
+                inventory = Inventory.builder()
+                                .inventoryId("inventory-1")
+                                .product(product)
+                                .quantity(10)
+                                .build();
 
-        user = User.builder()
-                .userId("user-1")
-                .username("john")
-                .email("john@example.com")
-                .role("USER")
-                .build();
+                user = User.builder()
+                                .userId("user-1")
+                                .username("john")
+                                .email("john@example.com")
+                                .role("USER")
+                                .build();
 
-        request = new CartItemRequest("user-1", "product-1", 2);
+                request = new CartItemRequest("user-1", "product-1", 2);
 
-        existingCartItem = CartItem.builder()
-                .cartItemId("cart-item-1")
-                .user(user)
-                .product(product)
-                .quantity(3)
-                .build();
+                existingCartItem = CartItem.builder()
+                                .cartItemId("cart-item-1")
+                                .user(user)
+                                .product(product)
+                                .quantity(3)
+                                .build();
 
-        cartItemResponse = CartItemResponse.builder()
-                .cartItemId("cart-item-1")
-                .userId("user-1")
-                .productId("product-1")
-                .quantity(2)
-                .build();
-    }
+                cartItemResponse = CartItemResponse.builder()
+                                .cartItemId("cart-item-1")
+                                .userId("user-1")
+                                .productId("product-1")
+                                .quantity(2)
+                                .build();
+        }
 
-    @Test
-    void testAddToCart_Success() {
-        when(productRepository.findById(request.getProductId())).thenReturn(Optional.of(product));
-        when(inventoryRepository.findByProductProductId(product.getProductId())).thenReturn(Optional.of(inventory));
-        when(userRepository.findById(request.getUserId())).thenReturn(Optional.of(user));
-        when(cartItemRepository.findByUserUserIdAndProductProductId(request.getUserId(), product.getProductId()))
-                .thenReturn(Optional.empty());
-        when(cartItemRepository.save(any(CartItem.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(cartItemMapper.toResponse(any(CartItem.class))).thenReturn(cartItemResponse);
+        @Test
+        void testAddToCart_Success() {
+                when(productRepository.findById(request.getProductId())).thenReturn(Optional.of(product));
+                when(inventoryRepository.findByProductProductId(product.getProductId()))
+                                .thenReturn(Optional.of(inventory));
+                when(userRepository.findById(request.getUserId())).thenReturn(Optional.of(user));
+                when(cartItemRepository.findByUserUserIdAndProductProductId(request.getUserId(),
+                                product.getProductId()))
+                                .thenReturn(Optional.empty());
+                when(cartItemRepository.save(any(CartItem.class))).thenAnswer(invocation -> invocation.getArgument(0));
+                when(cartItemMapper.toResponse(any(CartItem.class))).thenReturn(cartItemResponse);
 
-        CartItemResponse response = cartService.addToCart(request, request.getUserId());
+                CartItemResponse response = cartService.addToCart(request, request.getUserId());
 
-        ArgumentCaptor<CartItem> cartItemCaptor = ArgumentCaptor.forClass(CartItem.class);
-        verify(cartItemRepository).save(cartItemCaptor.capture());
+                ArgumentCaptor<CartItem> cartItemCaptor = ArgumentCaptor.forClass(CartItem.class);
+                verify(cartItemRepository).save(cartItemCaptor.capture());
 
-        CartItem savedCartItem = cartItemCaptor.getValue();
-        assertEquals(request.getQuantity(), savedCartItem.getQuantity());
-        assertEquals(user.getUserId(), savedCartItem.getUser().getUserId());
-        assertEquals(product.getProductId(), savedCartItem.getProduct().getProductId());
-        assertEquals(cartItemResponse, response);
-    }
+                CartItem savedCartItem = cartItemCaptor.getValue();
+                assertEquals(request.getQuantity(), savedCartItem.getQuantity());
+                assertEquals(user.getUserId(), savedCartItem.getUser().getUserId());
+                assertEquals(product.getProductId(), savedCartItem.getProduct().getProductId());
+                assertEquals(cartItemResponse, response);
+        }
 
-    @Test
-    void testAddToCart_ProductExists_ShouldIncreaseQuantity() {
-        when(productRepository.findById(request.getProductId())).thenReturn(Optional.of(product));
-        when(inventoryRepository.findByProductProductId(product.getProductId())).thenReturn(Optional.of(inventory));
-        when(userRepository.findById(request.getUserId())).thenReturn(Optional.of(user));
-        when(cartItemRepository.findByUserUserIdAndProductProductId(request.getUserId(), product.getProductId()))
-                .thenReturn(Optional.of(existingCartItem));
-        when(cartItemRepository.save(any(CartItem.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(cartItemMapper.toResponse(any(CartItem.class))).thenReturn(cartItemResponse);
+        @Test
+        void testAddToCart_ProductExists_ShouldIncreaseQuantity() {
+                when(productRepository.findById(request.getProductId())).thenReturn(Optional.of(product));
+                when(inventoryRepository.findByProductProductId(product.getProductId()))
+                                .thenReturn(Optional.of(inventory));
+                when(userRepository.findById(request.getUserId())).thenReturn(Optional.of(user));
+                when(cartItemRepository.findByUserUserIdAndProductProductId(request.getUserId(),
+                                product.getProductId()))
+                                .thenReturn(Optional.of(existingCartItem));
+                when(cartItemRepository.save(any(CartItem.class))).thenAnswer(invocation -> invocation.getArgument(0));
+                when(cartItemMapper.toResponse(any(CartItem.class))).thenReturn(cartItemResponse);
 
-        cartService.addToCart(request, request.getUserId());
+                cartService.addToCart(request, request.getUserId());
 
-        ArgumentCaptor<CartItem> cartItemCaptor = ArgumentCaptor.forClass(CartItem.class);
-        verify(cartItemRepository).save(cartItemCaptor.capture());
+                ArgumentCaptor<CartItem> cartItemCaptor = ArgumentCaptor.forClass(CartItem.class);
+                verify(cartItemRepository).save(cartItemCaptor.capture());
 
-        CartItem updatedCartItem = cartItemCaptor.getValue();
-        assertEquals(5, updatedCartItem.getQuantity());
-        assertEquals(existingCartItem.getCartItemId(), updatedCartItem.getCartItemId());
-    }
+                CartItem updatedCartItem = cartItemCaptor.getValue();
+                assertEquals(5, updatedCartItem.getQuantity());
+                assertEquals(existingCartItem.getCartItemId(), updatedCartItem.getCartItemId());
+        }
 
-    @Test
-    void testAddToCart_InsufficientStock_ShouldThrowException() {
-        request = new CartItemRequest("user-1", "product-1", 11);
+        @Test
+        void testAddToCart_InsufficientStock_ShouldThrowException() {
+                request = new CartItemRequest("user-1", "product-1", 11);
 
-        when(productRepository.findById(request.getProductId())).thenReturn(Optional.of(product));
-        when(inventoryRepository.findByProductProductId(product.getProductId())).thenReturn(Optional.of(inventory));
+                when(productRepository.findById(request.getProductId())).thenReturn(Optional.of(product));
+                when(inventoryRepository.findByProductProductId(product.getProductId()))
+                                .thenReturn(Optional.of(inventory));
 
-        OutOfStockException exception = assertThrows(OutOfStockException.class,
-                () -> cartService.addToCart(request, request.getUserId()));
+                OutOfStockException exception = assertThrows(OutOfStockException.class,
+                                () -> cartService.addToCart(request, request.getUserId()));
 
-        assertEquals("Requested quantity exceeds available stock", exception.getMessage());
-        verify(cartItemRepository, never()).save(any(CartItem.class));
-    }
+                assertEquals("Requested quantity exceeds available stock", exception.getMessage());
+                verify(cartItemRepository, never()).save(any(CartItem.class));
+        }
 
-    @Test
-    void testAddToCart_ProductNotFound_ShouldThrowException() {
-        when(productRepository.findById(request.getProductId())).thenReturn(Optional.empty());
+        @Test
+        void testAddToCart_ProductNotFound_ShouldThrowException() {
+                when(productRepository.findById(request.getProductId())).thenReturn(Optional.empty());
 
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
-                () -> cartService.addToCart(request, request.getUserId()));
+                ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                                () -> cartService.addToCart(request, request.getUserId()));
 
-        assertEquals("Product not found with id: product-1", exception.getMessage());
-        verify(inventoryRepository, never()).findByProductProductId(any());
-        verify(cartItemRepository, never()).save(any(CartItem.class));
-    }
+                assertEquals("Product not found with id: product-1", exception.getMessage());
+                verify(inventoryRepository, never()).findByProductProductId(any());
+                verify(cartItemRepository, never()).save(any(CartItem.class));
+        }
 
-    @Test
-    void testAddToCart_InventoryNotFound_ShouldThrowException() {
-        when(productRepository.findById(request.getProductId())).thenReturn(Optional.of(product));
-        when(inventoryRepository.findByProductProductId(product.getProductId())).thenReturn(Optional.empty());
+        @Test
+        void testAddToCart_InventoryNotFound_ShouldThrowException() {
+                when(productRepository.findById(request.getProductId())).thenReturn(Optional.of(product));
+                when(inventoryRepository.findByProductProductId(product.getProductId())).thenReturn(Optional.empty());
 
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
-                () -> cartService.addToCart(request, request.getUserId()));
+                ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                                () -> cartService.addToCart(request, request.getUserId()));
 
-        assertEquals("Inventory not found for product id: product-1", exception.getMessage());
-        verify(cartItemRepository, never()).save(any(CartItem.class));
-    }
+                assertEquals("Inventory not found for product id: product-1", exception.getMessage());
+                verify(cartItemRepository, never()).save(any(CartItem.class));
+        }
 
-    @Test
-    void testAddToCart_UserNotFound_ShouldThrowException() {
-        when(productRepository.findById(request.getProductId())).thenReturn(Optional.of(product));
-        when(inventoryRepository.findByProductProductId(product.getProductId())).thenReturn(Optional.of(inventory));
-        when(userRepository.findById(request.getUserId())).thenReturn(Optional.empty());
+        @Test
+        void testAddToCart_UserNotFound_ShouldThrowException() {
+                when(productRepository.findById(request.getProductId())).thenReturn(Optional.of(product));
+                when(inventoryRepository.findByProductProductId(product.getProductId()))
+                                .thenReturn(Optional.of(inventory));
+                when(userRepository.findById(request.getUserId())).thenReturn(Optional.empty());
 
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
-                () -> cartService.addToCart(request, request.getUserId()));
+                ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                                () -> cartService.addToCart(request, request.getUserId()));
 
-        assertEquals("User not found with id: user-1", exception.getMessage());
-        verify(cartItemRepository, never()).save(any(CartItem.class));
-    }
+                assertEquals("User not found with id: user-1", exception.getMessage());
+                verify(cartItemRepository, never()).save(any(CartItem.class));
+        }
 
-    @Test
-    void testUpdateQuantity_Success() {
-        CartItemRequest updateRequest = new CartItemRequest("user-1", "product-1", 4);
-        CartItemResponse updatedResponse = CartItemResponse.builder()
-                .cartItemId("cart-item-1")
-                .userId("user-1")
-                .productId("product-1")
-                .quantity(4)
-                .build();
+        @Test
+        void testUpdateQuantity_Success() {
+                CartItemRequest updateRequest = new CartItemRequest("user-1", "product-1", 4);
+                CartItemResponse updatedResponse = CartItemResponse.builder()
+                                .cartItemId("cart-item-1")
+                                .userId("user-1")
+                                .productId("product-1")
+                                .quantity(4)
+                                .build();
 
-        when(productRepository.findById(updateRequest.getProductId())).thenReturn(Optional.of(product));
-        when(inventoryRepository.findByProductProductId(product.getProductId())).thenReturn(Optional.of(inventory));
-        when(userRepository.findById(updateRequest.getUserId())).thenReturn(Optional.of(user));
-        when(cartItemRepository.findByUserUserIdAndProductProductId(updateRequest.getUserId(), product.getProductId()))
-                .thenReturn(Optional.of(existingCartItem));
-        when(cartItemRepository.save(any(CartItem.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(cartItemMapper.toResponse(any(CartItem.class))).thenReturn(updatedResponse);
+                when(productRepository.findById(updateRequest.getProductId())).thenReturn(Optional.of(product));
+                when(inventoryRepository.findByProductProductId(product.getProductId()))
+                                .thenReturn(Optional.of(inventory));
+                when(userRepository.findById(updateRequest.getUserId())).thenReturn(Optional.of(user));
+                when(cartItemRepository.findByUserUserIdAndProductProductId(updateRequest.getUserId(),
+                                product.getProductId()))
+                                .thenReturn(Optional.of(existingCartItem));
+                when(cartItemRepository.save(any(CartItem.class))).thenAnswer(invocation -> invocation.getArgument(0));
+                when(cartItemMapper.toResponse(any(CartItem.class))).thenReturn(updatedResponse);
 
-        CartItemResponse response = cartService.updateQuantity(updateRequest, updateRequest.getUserId());
+                CartItemResponse response = cartService.updateQuantity(updateRequest, updateRequest.getUserId());
 
-        ArgumentCaptor<CartItem> cartItemCaptor = ArgumentCaptor.forClass(CartItem.class);
-        verify(cartItemRepository).save(cartItemCaptor.capture());
+                ArgumentCaptor<CartItem> cartItemCaptor = ArgumentCaptor.forClass(CartItem.class);
+                verify(cartItemRepository).save(cartItemCaptor.capture());
 
-        CartItem savedCartItem = cartItemCaptor.getValue();
-        assertEquals(updateRequest.getQuantity(), savedCartItem.getQuantity());
-        assertEquals(updatedResponse, response);
-    }
+                CartItem savedCartItem = cartItemCaptor.getValue();
+                assertEquals(updateRequest.getQuantity(), savedCartItem.getQuantity());
+                assertEquals(updatedResponse, response);
+        }
 
-    @Test
-    void testUpdateQuantity_InsufficientStock_ShouldThrowException() {
-        CartItemRequest updateRequest = new CartItemRequest("user-1", "product-1", 11);
+        @Test
+        void testUpdateQuantity_InsufficientStock_ShouldThrowException() {
+                CartItemRequest updateRequest = new CartItemRequest("user-1", "product-1", 11);
 
-        when(productRepository.findById(updateRequest.getProductId())).thenReturn(Optional.of(product));
-        when(inventoryRepository.findByProductProductId(product.getProductId())).thenReturn(Optional.of(inventory));
+                when(productRepository.findById(updateRequest.getProductId())).thenReturn(Optional.of(product));
+                when(inventoryRepository.findByProductProductId(product.getProductId()))
+                                .thenReturn(Optional.of(inventory));
 
-        OutOfStockException exception = assertThrows(OutOfStockException.class,
-                () -> cartService.updateQuantity(updateRequest, updateRequest.getUserId()));
+                OutOfStockException exception = assertThrows(OutOfStockException.class,
+                                () -> cartService.updateQuantity(updateRequest, updateRequest.getUserId()));
 
-        assertEquals("Requested quantity exceeds available stock", exception.getMessage());
-        verify(cartItemRepository, never()).save(any(CartItem.class));
-    }
+                assertEquals("Requested quantity exceeds available stock", exception.getMessage());
+                verify(cartItemRepository, never()).save(any(CartItem.class));
+        }
 
-    @Test
-    void testUpdateQuantity_CartItemNotFound_ShouldThrowException() {
-        CartItemRequest updateRequest = new CartItemRequest("user-1", "product-1", 4);
+        @Test
+        void testUpdateQuantity_CartItemNotFound_ShouldThrowException() {
+                CartItemRequest updateRequest = new CartItemRequest("user-1", "product-1", 4);
 
-        when(productRepository.findById(updateRequest.getProductId())).thenReturn(Optional.of(product));
-        when(inventoryRepository.findByProductProductId(product.getProductId())).thenReturn(Optional.of(inventory));
-        when(userRepository.findById(updateRequest.getUserId())).thenReturn(Optional.of(user));
-        when(cartItemRepository.findByUserUserIdAndProductProductId(updateRequest.getUserId(), product.getProductId()))
-                .thenReturn(Optional.empty());
+                when(productRepository.findById(updateRequest.getProductId())).thenReturn(Optional.of(product));
+                when(inventoryRepository.findByProductProductId(product.getProductId()))
+                                .thenReturn(Optional.of(inventory));
+                when(userRepository.findById(updateRequest.getUserId())).thenReturn(Optional.of(user));
+                when(cartItemRepository.findByUserUserIdAndProductProductId(updateRequest.getUserId(),
+                                product.getProductId()))
+                                .thenReturn(Optional.empty());
 
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
-                () -> cartService.updateQuantity(updateRequest, updateRequest.getUserId()));
+                ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                                () -> cartService.updateQuantity(updateRequest, updateRequest.getUserId()));
 
-        assertEquals("Cart item not found for user id: user-1 and product id: product-1", exception.getMessage());
-        verify(cartItemRepository, never()).save(any(CartItem.class));
-    }
+                assertEquals("Cart item not found for user id: user-1 and product id: product-1",
+                                exception.getMessage());
+                verify(cartItemRepository, never()).save(any(CartItem.class));
+        }
 
-    @Test
-    void testRemoveFromCart_Success() {
-        when(cartItemRepository.findByUserUserIdAndProductProductId(user.getUserId(), product.getProductId()))
-                .thenReturn(Optional.of(existingCartItem));
+        @Test
+        void testUpdateQuantity_ProductNotFound_ShouldThrowException() {
+                CartItemRequest updateRequest = new CartItemRequest("user-1", "missing-product", 4);
 
-        cartService.removeFromCart(user.getUserId(), product.getProductId());
+                when(productRepository.findById(updateRequest.getProductId())).thenReturn(Optional.empty());
 
-        verify(cartItemRepository).delete(existingCartItem);
-    }
+                ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                                () -> cartService.updateQuantity(updateRequest, updateRequest.getUserId()));
 
-    @Test
-    void testRemoveFromCart_CartItemNotFound_ShouldThrowException() {
-        when(cartItemRepository.findByUserUserIdAndProductProductId(user.getUserId(), product.getProductId()))
-                .thenReturn(Optional.empty());
+                assertEquals("Product not found with id: missing-product", exception.getMessage());
+                verify(inventoryRepository, never()).findByProductProductId(any());
+                verify(cartItemRepository, never()).save(any(CartItem.class));
+        }
 
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
-                () -> cartService.removeFromCart(user.getUserId(), product.getProductId()));
+        @Test
+        void testUpdateQuantity_InventoryNotFound_ShouldThrowException() {
+                CartItemRequest updateRequest = new CartItemRequest("user-1", "product-1", 4);
 
-        assertEquals("Cart item not found for user id: user-1 and product id: product-1", exception.getMessage());
-        verify(cartItemRepository, never()).delete(any(CartItem.class));
-    }
+                when(productRepository.findById(updateRequest.getProductId())).thenReturn(Optional.of(product));
+                when(inventoryRepository.findByProductProductId(product.getProductId())).thenReturn(Optional.empty());
 
-    @Test
-    void testGetCartItemsByUserId_ShouldMapAllItems() {
-        CartItem secondCartItem = CartItem.builder()
-                .cartItemId("cart-item-2")
-                .user(user)
-                .product(product)
-                .quantity(1)
-                .build();
+                ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                                () -> cartService.updateQuantity(updateRequest, updateRequest.getUserId()));
 
-        CartItemResponse firstResponse = CartItemResponse.builder()
-                .cartItemId("cart-item-1")
-                .userId("user-1")
-                .productId("product-1")
-                .quantity(3)
-                .build();
-        CartItemResponse secondResponse = CartItemResponse.builder()
-                .cartItemId("cart-item-2")
-                .userId("user-1")
-                .productId("product-1")
-                .quantity(1)
-                .build();
+                assertEquals("Inventory not found for product id: product-1", exception.getMessage());
+                verify(userRepository, never()).findById(any());
+                verify(cartItemRepository, never()).save(any(CartItem.class));
+        }
 
-        when(cartItemRepository.findByUserUserId(user.getUserId()))
-                .thenReturn(List.of(existingCartItem, secondCartItem));
-        when(cartItemMapper.toResponse(existingCartItem)).thenReturn(firstResponse);
-        when(cartItemMapper.toResponse(secondCartItem)).thenReturn(secondResponse);
+        @Test
+        void testUpdateQuantity_UserNotFound_ShouldThrowException() {
+                CartItemRequest updateRequest = new CartItemRequest("missing-user", "product-1", 4);
 
-        List<CartItemResponse> responses = cartService.getCartItemsByUserId(user.getUserId());
+                when(productRepository.findById(updateRequest.getProductId())).thenReturn(Optional.of(product));
+                when(inventoryRepository.findByProductProductId(product.getProductId()))
+                                .thenReturn(Optional.of(inventory));
+                when(userRepository.findById(updateRequest.getUserId())).thenReturn(Optional.empty());
 
-        assertEquals(2, responses.size());
-        assertEquals(firstResponse, responses.get(0));
-        assertEquals(secondResponse, responses.get(1));
-        verify(cartItemRepository).findByUserUserId(eq(user.getUserId()));
-    }
+                ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                                () -> cartService.updateQuantity(updateRequest, updateRequest.getUserId()));
+
+                assertEquals("User not found with id: missing-user", exception.getMessage());
+                verify(cartItemRepository, never()).findByUserUserIdAndProductProductId(any(), any());
+                verify(cartItemRepository, never()).save(any(CartItem.class));
+        }
+
+        @Test
+        void testRemoveFromCart_Success() {
+                when(cartItemRepository.findByUserUserIdAndProductProductId(user.getUserId(), product.getProductId()))
+                                .thenReturn(Optional.of(existingCartItem));
+
+                cartService.removeFromCart(user.getUserId(), product.getProductId());
+
+                verify(cartItemRepository).delete(existingCartItem);
+        }
+
+        @Test
+        void testRemoveFromCart_CartItemNotFound_ShouldThrowException() {
+                when(cartItemRepository.findByUserUserIdAndProductProductId(user.getUserId(), product.getProductId()))
+                                .thenReturn(Optional.empty());
+
+                ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                                () -> cartService.removeFromCart(user.getUserId(), product.getProductId()));
+
+                assertEquals("Cart item not found for user id: user-1 and product id: product-1",
+                                exception.getMessage());
+                verify(cartItemRepository, never()).delete(any(CartItem.class));
+        }
+
+        @Test
+        void testGetCartItemsByUserId_ShouldMapAllItems() {
+                CartItem secondCartItem = CartItem.builder()
+                                .cartItemId("cart-item-2")
+                                .user(user)
+                                .product(product)
+                                .quantity(1)
+                                .build();
+
+                CartItemResponse firstResponse = CartItemResponse.builder()
+                                .cartItemId("cart-item-1")
+                                .userId("user-1")
+                                .productId("product-1")
+                                .quantity(3)
+                                .build();
+                CartItemResponse secondResponse = CartItemResponse.builder()
+                                .cartItemId("cart-item-2")
+                                .userId("user-1")
+                                .productId("product-1")
+                                .quantity(1)
+                                .build();
+
+                when(cartItemRepository.findByUserUserId(user.getUserId()))
+                                .thenReturn(List.of(existingCartItem, secondCartItem));
+                when(cartItemMapper.toResponse(existingCartItem)).thenReturn(firstResponse);
+                when(cartItemMapper.toResponse(secondCartItem)).thenReturn(secondResponse);
+
+                List<CartItemResponse> responses = cartService.getCartItemsByUserId(user.getUserId());
+
+                assertEquals(2, responses.size());
+                assertEquals(firstResponse, responses.get(0));
+                assertEquals(secondResponse, responses.get(1));
+                verify(cartItemRepository).findByUserUserId(eq(user.getUserId()));
+        }
 }

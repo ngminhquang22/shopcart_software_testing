@@ -69,6 +69,7 @@ describe('Cart Mock Tests', () => {
         expect(mockedAddToCart).toHaveBeenCalledWith('user01', {
             item: {
                 id: 'P001',
+                productId: 'P001',
                 name: 'Sample Product',
                 price: 10000,
                 stock: 10,

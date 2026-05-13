@@ -1,121 +1,85 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState, useEffect } from 'react';
+import { ProductList } from './components/ProductList';
+import { CartPage } from './components/CartPage';
+import { CheckoutPage } from './components/CheckoutPage';
+import { setApiConfig } from './services/apiClient';
+import './App.css';
+
+type Page = 'products' | 'cart' | 'checkout';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [page, setPage] = useState<Page>('products');
+  const [userId, setUserId] = useState('user-1');
+  const [cartCount, setCartCount] = useState(0);
+
+  useEffect(() => {
+    setApiConfig({ userId });
+  }, [userId]);
+
+  const handleAddToCart = () => {
+    setCartCount((prev) => prev + 1);
+  };
+
+  const handleUserChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setUserId(e.target.value);
+    setCartCount(0);
+  };
 
   return (
     <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+      <header className="app-header">
+        <div className="header-container">
+          <div className="header-left">
+            <h1>🏪 ShoeCart - Premium Sneakers</h1>
+            <p className="tagline">Test E-commerce Platform</p>
+          </div>
+          <div className="header-right">
+            <div className="user-selector">
+              <label>Test User:</label>
+              <select value={userId} onChange={handleUserChange}>
+                <option value="user-1">user-1 (Anh Nguyen)</option>
+                <option value="user-2">user-2 (Quang Tran)</option>
+                <option value="user-3">user-3 (Thu Le)</option>
+              </select>
+            </div>
+          </div>
         </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
+      </header>
+
+      <nav className="app-nav">
         <button
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
+          className={`nav-btn ${page === 'products' ? 'active' : ''}`}
+          onClick={() => setPage('products')}
         >
-          Count is {count}
+          🏃 Shop Sneakers
         </button>
-      </section>
+        <button
+          className={`nav-btn ${page === 'cart' ? 'active' : ''}`}
+          onClick={() => setPage('cart')}
+        >
+          🛒 Cart {cartCount > 0 && `(${cartCount})`}
+        </button>
+        <button
+          className={`nav-btn ${page === 'checkout' ? 'active' : ''}`}
+          onClick={() => setPage('checkout')}
+        >
+          📦 Checkout
+        </button>
+      </nav>
 
-      <div className="ticks"></div>
+      <main className="app-content">
+        {page === 'products' && (
+          <ProductList userId={userId} onAddToCart={handleAddToCart} />
+        )}
+        {page === 'cart' && <CartPage userId={userId} />}
+        {page === 'checkout' && <CheckoutPage userId={userId} />}
+      </main>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
+      <footer className="app-footer">
+        <p>🧪 Frontend E-commerce Test Platform | Backend: http://localhost:8080</p>
+      </footer>
     </>
-  )
+  );
 }
 
-export default App
+export default App;

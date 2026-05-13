@@ -1,0 +1,367 @@
+{
+    "info": {
+        "name": "ShopCart - Cart API Tests",
+        "_postman_id": "shopcart-cart-tests-001",
+        "description": "Postman collection to test cart add/update/delete/list scenarios",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Add - Add new product to cart",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{userId}}"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"productId\": \"{{productId}}\",\n  \"quantity\": 2\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/cart/add",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "cart",
+                        "add"
+                    ]
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Status is 200 or 201', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+                            "var json = pm.response.json();",
+                            "pm.test('Has cartItemId', function () { pm.expect(json.cartItemId).to.exist; });",
+                            "pm.collectionVariables.set('lastCartItemId', json.cartItemId);",
+                            "pm.collectionVariables.set('lastCartProductId', json.productId || '{{productId}}');",
+                            "pm.collectionVariables.set('lastCartQuantity', json.quantity);"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Add - Add same product again (should accumulate)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{userId}}"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"productId\": \"{{productId}}\",\n  \"quantity\": 3\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/cart/add",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "cart",
+                        "add"
+                    ]
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Status is 200 or 201', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+                            "var json = pm.response.json();",
+                            "pm.test('Quantity increased (accumulated)', function () { var prev = Number(pm.collectionVariables.get('lastCartQuantity')) || 0; pm.expect(json.quantity).to.eql(prev + 3); });",
+                            "pm.collectionVariables.set('lastCartQuantity', json.quantity);",
+                            "pm.collectionVariables.set('lastCartItemId', json.cartItemId);"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Update - Update quantity successfully",
+            "request": {
+                "method": "PUT",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{userId}}"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"productId\": \"{{productId}}\",\n  \"quantity\": 1\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/cart/{{userId}}/items",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "cart",
+                        "{{userId}}",
+                        "items"
+                    ]
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                            "var json=pm.response.json();",
+                            "pm.test('Quantity updated to 1', function(){pm.expect(json.quantity).to.eql(1);});"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Update - Insufficient stock (expect error)",
+            "request": {
+                "method": "PUT",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{userId}}"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"productId\": \"{{productId}}\",\n  \"quantity\": 99999\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/cart/{{userId}}/items",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "cart",
+                        "{{userId}}",
+                        "items"
+                    ]
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Expect client error for insufficient stock', function(){pm.expect(pm.response.code).to.be.above(399);});"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Add - Missing product (expect 4xx)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{userId}}"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"productId\": \"invalid-product-xyz\",\n  \"quantity\": 1\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/cart/add",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "cart",
+                        "add"
+                    ]
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Expect 4xx for missing product', function(){pm.expect(pm.response.code).to.be.within(400,499);});"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Add - Missing user (expect 401/404)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer unknown-user"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"userId\": \"unknown-user\",\n  \"productId\": \"{{productId}}\",\n  \"quantity\": 1\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/cart/add",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "cart",
+                        "add"
+                    ]
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Expect unauthorized or not found for missing user', function(){pm.expect(pm.response.code).to.be.oneOf([401,404]);});"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Delete - Remove existing cart item",
+            "request": {
+                "method": "DELETE",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{userId}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/cart/{{userId}}/items/{{productId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "cart",
+                        "{{userId}}",
+                        "items",
+                        "{{productId}}"
+                    ]
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Delete returns 200 or 204', function(){pm.expect(pm.response.code).to.be.oneOf([200,204]);});"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Delete - Remove non-existing cart item (expect 404)",
+            "request": {
+                "method": "DELETE",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{userId}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/cart/{{userId}}/items/nonexistent-product-xyz",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "cart",
+                        "{{userId}}",
+                        "items",
+                        "nonexistent-product-xyz"
+                    ]
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Expect 404 when deleting non-existing item', function(){pm.expect(pm.response.code).to.eql(404);});"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Get - Get cart items for user and mapping",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{userId}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/cart/{{userId}}/items",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "cart",
+                        "{{userId}}",
+                        "items"
+                    ]
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Status 200', function(){pm.response.to.have.status(200);});",
+                            "var json = pm.response.json();",
+                            "pm.test('Response is array', function(){pm.expect(Array.isArray(json)).to.be.true;});",
+                            "pm.test('Items have expected fields', function(){ if(json.length>0){ pm.expect(json[0]).to.have.property('cartItemId'); pm.expect(json[0]).to.have.property('productId'); pm.expect(json[0]).to.have.property('quantity'); } });"
+                        ]
+                    }
+                }
+            ]
+        }
+    ]
+}

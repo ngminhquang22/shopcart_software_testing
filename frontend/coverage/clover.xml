@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1778334239241" clover="3.2.0">
-  <project timestamp="1778334239242" name="All files">
-    <metrics statements="51" coveredstatements="47" conditionals="30" coveredconditionals="27" methods="5" coveredmethods="5" elements="86" coveredelements="79" complexity="0" loc="51" ncloc="51" packages="1" files="2" classes="2"/>
+<coverage generated="1778597068884" clover="3.2.0">
+  <project timestamp="1778597068884" name="All files">
+    <metrics statements="51" coveredstatements="47" conditionals="29" coveredconditionals="26" methods="5" coveredmethods="5" elements="85" coveredelements="78" complexity="0" loc="51" ncloc="51" packages="1" files="2" classes="2"/>
     <file name="cartValidation.ts" path="D:\Khanh\Testing Software\asignment2\shopcart_software_testing\frontend\src\utils\cartValidation.ts">
-      <metrics statements="9" coveredstatements="9" conditionals="8" coveredconditionals="8" methods="1" coveredmethods="1"/>
+      <metrics statements="9" coveredstatements="9" conditionals="7" coveredconditionals="7" methods="1" coveredmethods="1"/>
       <line num="7" count="1" type="cond" truecount="1" falsecount="0"/>
-      <line num="8" count="13" type="cond" truecount="3" falsecount="0"/>
-      <line num="9" count="8" type="stmt"/>
-      <line num="10" count="8" type="cond" truecount="1" falsecount="0"/>
-      <line num="12" count="13" type="cond" truecount="2" falsecount="0"/>
+      <line num="8" count="18" type="cond" truecount="2" falsecount="0"/>
+      <line num="9" count="9" type="stmt"/>
+      <line num="10" count="9" type="cond" truecount="2" falsecount="0"/>
+      <line num="12" count="10" type="cond" truecount="1" falsecount="0"/>
       <line num="13" count="1" type="stmt"/>
       <line num="14" count="1" type="cond" truecount="1" falsecount="0"/>
-      <line num="16" count="4" type="stmt"/>
-      <line num="17" count="4" type="stmt"/>
+      <line num="16" count="8" type="stmt"/>
+      <line num="17" count="8" type="stmt"/>
     </file>
     <file name="priceCalculation.ts" path="D:\Khanh\Testing Software\asignment2\shopcart_software_testing\frontend\src\utils\priceCalculation.ts">
       <metrics statements="42" coveredstatements="38" conditionals="22" coveredconditionals="19" methods="4" coveredmethods="4"/>

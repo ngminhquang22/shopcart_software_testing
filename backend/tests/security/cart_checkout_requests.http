@@ -1,0 +1,35 @@
+### SEC-01: SQL Injection payload in productId - should not bypass DB query
+POST http://localhost:8080/api/cart/user-1/items
+Authorization: Bearer user-1
+Content-Type: application/json
+
+{
+  "userId": "user-1",
+  "productId": "product-1' OR '1'='1",
+  "quantity": 1
+}
+
+### SEC-02: IDOR - user-1 tries to read user-2 cart
+GET http://localhost:8080/api/cart/user-2/items
+Authorization: Bearer user-1
+Accept: application/json
+
+### SEC-03: Missing authentication - should be 401/403
+GET http://localhost:8080/api/cart/user-1/items
+Accept: application/json
+
+### SEC-04: Stored XSS payload in checkout shippingAddress - should be rejected or encoded
+POST http://localhost:8080/api/orders/user-1
+Authorization: Bearer user-1
+Content-Type: application/json
+
+{
+  "userId": "user-1",
+  "items": [
+    { "userId": "user-1", "productId": "product-1", "quantity": 1 }
+  ],
+  "couponCode": "",
+  "shippingFee": 15000,
+  "shippingAddress": "<script>alert('xss')</script>",
+  "paymentMethod": "COD"
+}

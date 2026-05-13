@@ -5,7 +5,7 @@ import { validateCartItem } from '../src/utils/cartValidation';
 describe('validateCartItem', () => {
     const baseItem = { productId: 'P001', stock: 5 };
 
-    it('TC1: quantity rong/null/undefined/khong phai so', () => {
+    it('TC1: quantity rỗng, null, undefined hoặc không phải số', () => {
         const invalidValues: Array<unknown> = [undefined, null, 'abc', Number.NaN];
 
         invalidValues.forEach((value) => {
@@ -18,7 +18,7 @@ describe('validateCartItem', () => {
         });
     });
 
-    it('TC2: quantity am hoac bang 0', () => {
+    it('TC2: quantity âm hoặc bằng 0', () => {
         const invalidValues = [0, -1, -5];
 
         invalidValues.forEach((value) => {
@@ -31,7 +31,7 @@ describe('validateCartItem', () => {
         });
     });
 
-    it('TC3: quantity vuot ton kho', () => {
+    it('TC3: quantity vượt tồn kho', () => {
         const result = validateCartItem({
             ...baseItem,
             quantity: 10,
@@ -40,7 +40,7 @@ describe('validateCartItem', () => {
         expect(result).toBe('So luong vuot qua ton kho.');
     });
 
-    it('TC4: quantity hop le', () => {
+    it('TC4: quantity hợp lệ', () => {
         const result = validateCartItem({
             ...baseItem,
             quantity: 3,

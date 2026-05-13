@@ -1,0 +1,147 @@
+.cart-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.cart-container h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.empty-cart {
+  text-align: center;
+  padding: 40px;
+  color: #999;
+  font-size: 16px;
+}
+
+.cart-items {
+  margin-bottom: 20px;
+}
+
+.cart-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  background: #f9f9f9;
+}
+
+.item-info h4 {
+  margin: 0 0 5px 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.item-id {
+  font-size: 12px;
+  color: #999;
+  margin: 5px 0;
+}
+
+.item-price {
+  color: #e74c3c;
+  font-weight: bold;
+  font-size: 14px;
+  margin: 5px 0 0 0;
+}
+
+.item-actions {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.quantity-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 4px;
+}
+
+.qty-btn {
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: #ecf0f1;
+  cursor: pointer;
+  border-radius: 3px;
+  font-size: 16px;
+  transition: background 0.2s;
+}
+
+.qty-btn:hover {
+  background: #bdc3c7;
+}
+
+.qty-value {
+  width: 30px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.item-total {
+  min-width: 120px;
+  text-align: right;
+  font-weight: bold;
+  color: #e74c3c;
+}
+
+.remove-btn {
+  padding: 8px 12px;
+  background: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.remove-btn:hover:not(:disabled) {
+  background: #c0392b;
+}
+
+.remove-btn:disabled {
+  background: #95a5a6;
+  cursor: not-allowed;
+}
+
+.cart-summary {
+  background: #f0f0f0;
+  padding: 20px;
+  border-radius: 6px;
+  text-align: right;
+}
+
+.cart-summary h3 {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+}
+
+.subtotal-price {
+  font-size: 24px;
+  font-weight: bold;
+  color: #e74c3c;
+  margin: 10px 0;
+}
+
+.items-count {
+  color: #999;
+  font-size: 14px;
+  margin: 0;
+}
+
+.error-message {
+  background: #e74c3c;
+  color: white;
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}

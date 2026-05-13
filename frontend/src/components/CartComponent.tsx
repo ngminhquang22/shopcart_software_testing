@@ -10,6 +10,7 @@ export interface CartComponentProps {
 
 const DEFAULT_PRODUCT: Product = {
     id: 'P001',
+    productId: 'P001',
     name: 'Sample Product',
     price: 10000,
     stock: 10,
